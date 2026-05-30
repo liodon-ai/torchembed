@@ -24,6 +24,7 @@ Requires Python ≥ 3.9 and PyTorch ≥ 2.0. No other required dependencies.
 
 ## What's included
 
+
 | Module | Class | Use case |
 |---|---|---|
 | `positional` | `RotaryEmbedding` | Modern LLMs (LLaMA, Mistral, Falcon) |
