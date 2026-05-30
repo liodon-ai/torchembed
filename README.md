@@ -12,6 +12,28 @@
 
 ---
 
+## Table of Contents
+
+- [Installation](#installation)
+- [What's included](#whats-included)
+- [Quick start](#quick-start)
+- [Examples](#examples)
+  - [Rotary Embedding (RoPE)](#rotary-embedding-rope--llama--mistral-style)
+  - [ALiBi](#alibi--long-context-with-length-extrapolation)
+  - [Gaussian Fourier Projection](#gaussian-fourier-projection--diffusion-model-timestep-embedding)
+  - [ViT Patch Embedding](#vit-patch-embedding)
+  - [Tubelet Embedding](#tubelet-embedding--video-transformers)
+  - [Tabular categorical features](#tabular-categorical-features)
+  - [Cyclic time features](#cyclic-time-features)
+  - [Frequency Embedding](#frequency-embedding--learnable-periodic-decomposition)
+  - [Random Fourier Features](#random-fourier-features-for-coordinate-encoding)
+- [Design principles](#design-principles)
+- [Running tests](#running-tests)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
 ## Installation
 
 ```bash
@@ -46,18 +68,22 @@ Requires Python ≥ 3.9 and PyTorch ≥ 2.0. No other required dependencies.
 
 ## Quick start
 
+Import from submodules:
+
 ```python
-from torchembed import (
-    RotaryEmbedding,
-    ALiBiEmbedding,
-    SinusoidalEmbedding,
-    RandomFourierFeatures,
-    PatchEmbedding,
-    EntityEmbedding,
-    MultiCategoricalEmbedding,
-    GaussianFourierProjection,
-    CyclicEmbedding,
-)
+from torchembed.positional import RotaryEmbedding, ALiBiEmbedding, SinusoidalEmbedding, LearnedPositionalEmbedding
+from torchembed.fourier import RandomFourierFeatures, LearnedFourierFeatures, GaussianFourierProjection
+from torchembed.categorical import EntityEmbedding, MultiCategoricalEmbedding
+from torchembed.patch import PatchEmbedding, TubeletEmbedding
+from torchembed.temporal import CyclicEmbedding, TimestampEmbedding, FrequencyEmbedding
+```
+
+Or import individual classes directly:
+
+```python
+from torchembed.positional import RotaryEmbedding
+from torchembed.fourier import GaussianFourierProjection
+from torchembed.patch import PatchEmbedding
 ```
 
 ---
@@ -68,7 +94,7 @@ from torchembed import (
 
 ```python
 import torch
-from torchembed import RotaryEmbedding
+from torchembed.positional import RotaryEmbedding
 
 rope = RotaryEmbedding(dim=64)  # head_dim
 
@@ -86,7 +112,7 @@ The default base of 10,000 matches the original paper; use `base=500_000` for LL
 ### ALiBi — long context with length extrapolation
 
 ```python
-from torchembed import ALiBiEmbedding
+from torchembed.positional import ALiBiEmbedding
 
 alibi = ALiBiEmbedding(num_heads=8)
 
@@ -101,7 +127,7 @@ attn_weights = attn_scores.softmax(-1)
 ### Gaussian Fourier Projection — diffusion model timestep embedding
 
 ```python
-from torchembed import GaussianFourierProjection
+from torchembed.fourier import GaussianFourierProjection
 import torch.nn as nn
 
 class DiffusionTimeEmbedding(nn.Module):
@@ -127,7 +153,7 @@ emb = t_emb(t)       # (32, 256) — condition your UNet on this
 ### ViT Patch Embedding
 
 ```python
-from torchembed import PatchEmbedding
+from torchembed.patch import PatchEmbedding
 
 patch_emb = PatchEmbedding(
     image_size=224,
@@ -142,10 +168,29 @@ print(patch_emb.num_patches)  # 196
 
 ---
 
+### Tubelet Embedding — Video Transformers
+
+```python
+from torchembed.patch import TubeletEmbedding
+
+tubelet_emb = TubeletEmbedding(
+    image_size=224,
+    patch_size=16,
+    tubelet_size=2,
+    embed_dim=768,
+)
+
+video = torch.randn(2, 3, 16, 224, 224)   # (B, C, T, H, W)
+tokens = tubelet_emb(video)                # (2, 1568, 768)
+# 1568 = (16/2) * (224/16) * (224/16) = 8 * 14 * 14
+```
+
+---
+
 ### Tabular categorical features
 
 ```python
-from torchembed import MultiCategoricalEmbedding
+from torchembed.categorical import MultiCategoricalEmbedding
 
 # A tabular dataset with 3 categorical columns:
 # country (50 unique values), day of week (7), product category (120)
@@ -161,7 +206,7 @@ features = emb(x)   # (batch, output_dim)
 ### Cyclic time features
 
 ```python
-from torchembed import CyclicEmbedding
+from torchembed.temporal import CyclicEmbedding
 import torch
 
 hour_enc  = CyclicEmbedding(period=24)
@@ -184,13 +229,28 @@ time_features = torch.cat([
 ### Random Fourier Features for coordinate encoding
 
 ```python
-from torchembed import RandomFourierFeatures
+from torchembed.fourier import RandomFourierFeatures
 
 # Encode 2D spatial coordinates for a neural field / NeRF-style model
 rff = RandomFourierFeatures(in_features=2, out_features=256, sigma=1.0)
 
 coords = torch.rand(1024, 2)   # (x, y) pairs in [0, 1]
 features = rff(coords)          # (1024, 256)
+```
+
+---
+
+### Frequency Embedding — learnable periodic decomposition
+
+```python
+from torchembed.temporal import FrequencyEmbedding
+
+# Discover periodic structure in time series automatically
+freq_emb = FrequencyEmbedding(embed_dim=32)
+
+t = torch.linspace(0, 100, 512).unsqueeze(0)   # (1, 512) time steps
+out = freq_emb(t)                               # (1, 512, 33)
+# 33 = 1 linear trend + 32 sinusoidal components
 ```
 
 ---
