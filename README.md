@@ -17,6 +17,8 @@
 - [Installation](#installation)
 - [What's included](#whats-included)
 - [Quick start](#quick-start)
+- [Triton kernels](#triton-kernels)
+- [Documentation](#documentation)
 - [Examples](#examples)
   - [Rotary Embedding (RoPE)](#rotary-embedding-rope--llama--mistral-style)
   - [ALiBi](#alibi--long-context-with-length-extrapolation)
@@ -40,12 +42,17 @@
 pip install torchembed
 ```
 
-Requires Python ≥ 3.9 and PyTorch ≥ 2.0. No other required dependencies.
+For GPU-accelerated kernels:
+
+```bash
+pip install torchembed[triton]
+```
+
+Requires Python >= 3.9 and PyTorch >= 2.0.
 
 ---
 
 ## What's included
-
 
 | Module | Class | Use case |
 |---|---|---|
@@ -68,23 +75,52 @@ Requires Python ≥ 3.9 and PyTorch ≥ 2.0. No other required dependencies.
 
 ## Quick start
 
-Import from submodules:
-
-```python
-from torchembed.positional import RotaryEmbedding, ALiBiEmbedding, SinusoidalEmbedding, LearnedPositionalEmbedding
-from torchembed.fourier import RandomFourierFeatures, LearnedFourierFeatures, GaussianFourierProjection
-from torchembed.categorical import EntityEmbedding, MultiCategoricalEmbedding
-from torchembed.patch import PatchEmbedding, TubeletEmbedding
-from torchembed.temporal import CyclicEmbedding, TimestampEmbedding, FrequencyEmbedding
-```
-
-Or import individual classes directly:
-
 ```python
 from torchembed.positional import RotaryEmbedding
 from torchembed.fourier import GaussianFourierProjection
 from torchembed.patch import PatchEmbedding
+
+rope = RotaryEmbedding(dim=64)
+q_rot, k_rot = rope(q, k)
+
+t_emb = GaussianFourierProjection(embed_dim=256)
+emb = t_emb(t)
+
+patch_emb = PatchEmbedding(image_size=224, patch_size=16, embed_dim=768)
+tokens = patch_emb(images)
 ```
+
+---
+
+## Triton kernels
+
+torchembed includes optional triton-accelerated kernels for GPU. Install with:
+
+```bash
+pip install torchembed[triton]
+```
+
+Enable with `use_fused=True`:
+
+```python
+rope = RotaryEmbedding(dim=64, use_fused=True)
+```
+
+The fused RoPE kernel combines cos/sin lookup, rotate-half, and element-wise multiplication into a single triton launch, reducing memory traffic. Supports any even dim (32, 64, 128, etc.) and full autograd support. Falls back to vanilla PyTorch automatically when triton is unavailable or inputs are on CPU.
+
+---
+
+## Documentation
+
+Full API reference for every module is in the [`docs/`](docs/) directory:
+
+| Module | File |
+|---|---|
+| Positional (RoPE, ALiBi, Sinusoidal, Learned) | [docs/positional.md](docs/positional.md) |
+| Fourier features | [docs/fourier.md](docs/fourier.md) |
+| Categorical embeddings | [docs/categorical.md](docs/categorical.md) |
+| Patch embeddings (ViT, video) | [docs/patch.md](docs/patch.md) |
+| Temporal embeddings | [docs/temporal.md](docs/temporal.md) |
 
 ---
 
@@ -106,6 +142,13 @@ q, k = rope(q, k)  # apply rotation in-place
 
 RoPE has no trainable parameters and preserves vector norms (it's a pure rotation).
 The default base of 10,000 matches the original paper; use `base=500_000` for LLaMA 3.
+
+For GPU-accelerated inference:
+
+```python
+rope = RotaryEmbedding(dim=128, use_fused=True).to("cuda")
+q, k = rope(q.cuda(), k.cuda())
+```
 
 ---
 
@@ -259,7 +302,7 @@ out = freq_emb(t)                               # (1, 512, 33)
 
 **Everything is an `nn.Module`.** You can use any embedding as a layer in a larger model, save/load it with `state_dict`, move it across devices, and wrap it with `torch.compile`.
 
-**No required dependencies beyond PyTorch.** `torchembed` has exactly one required dependency: PyTorch itself. We don't pull in transformers, numpy, or anything else.
+**No required dependencies beyond PyTorch.** `torchembed` has exactly one required dependency: PyTorch itself. We don't pull in transformers, numpy, or anything else. Triton-based GPU kernels are optional (`pip install torchembed[triton]`).
 
 **Device-agnostic.** No `.cuda()` calls inside the library. Move your model to whatever device you want — the embeddings follow.
 
