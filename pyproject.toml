@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "torchembed"
-version = "0.2.3"
+version = "0.2.4"
 description = "A PyTorch library of modern embedding strategies missing from torch.nn"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -40,10 +40,10 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-org/torchembed"
-Documentation = "https://torchembed.readthedocs.io"
-Repository = "https://github.com/your-org/torchembed"
-Issues = "https://github.com/your-org/torchembed/issues"
+Homepage = "https://github.com/liodon-ai/torchembed"
+Documentation = "https://github.com/liodon-ai/torchembed"
+Repository = "https://github.com/liodon-ai/torchembed"
+Issues = "https://github.com/liodon-ai/torchembed/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["torchembed"]
