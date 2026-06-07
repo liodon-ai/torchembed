@@ -8,11 +8,12 @@ Includes:
   at once, concatenating all embeddings into a single output tensor
 """
 
-import math
+from collections.abc import Sequence
+from typing import Optional
+
 import torch
 import torch.nn as nn
 from torch import Tensor
-from typing import Dict, List, Optional, Sequence, Tuple
 
 
 def _auto_dim(num_categories: int) -> int:
@@ -149,6 +150,6 @@ class MultiCategoricalEmbedding(nn.Module):
         parts = [emb(x[:, i]) for i, emb in enumerate(self.embeddings)]
         return torch.cat(parts, dim=-1)
 
-    def embedding_dims(self) -> List[Tuple[int, int]]:
+    def embedding_dims(self) -> list[tuple[int, int]]:
         """Return list of (num_categories, embed_dim) for each column."""
         return [(e.num_categories, e.embed_dim) for e in self.embeddings]  # type: ignore[union-attr]

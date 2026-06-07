@@ -1,9 +1,7 @@
 """Tests for positional embedding modules."""
 
-import math
 import pytest
 import torch
-import torch.nn as nn
 
 from torchembed.positional import (
     ALiBiEmbedding,

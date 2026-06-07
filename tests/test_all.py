@@ -4,15 +4,14 @@ import pytest
 import torch
 import torch.nn as nn
 
+from torchembed.categorical import EntityEmbedding, MultiCategoricalEmbedding
 from torchembed.fourier import (
     GaussianFourierProjection,
     LearnedFourierFeatures,
     RandomFourierFeatures,
 )
-from torchembed.categorical import EntityEmbedding, MultiCategoricalEmbedding
 from torchembed.patch import PatchEmbedding, TubeletEmbedding
 from torchembed.temporal import CyclicEmbedding, FrequencyEmbedding, TimestampEmbedding
-
 
 # ─── Fourier ─────────────────────────────────────────────────────────────────
 
@@ -60,13 +59,13 @@ class TestRandomFourierFeatures:
 
 class TestLearnedFourierFeatures:
     def test_output_shape(self):
-        lff = LearnedFourierFeatures(in_features=3, num_frequencies=64, out_features=128)
+        lff = LearnedFourierFeatures(in_features=3, num_frequencies=64, out_features=128)  # noqa: E501
         x = torch.randn(16, 3)
         out = lff(x)
         assert out.shape == (16, 128)
 
     def test_has_learnable_params(self):
-        lff = LearnedFourierFeatures(in_features=3, num_frequencies=64, out_features=128)
+        lff = LearnedFourierFeatures(in_features=3, num_frequencies=64, out_features=128)  # noqa: E501
         total = sum(p.numel() for p in lff.parameters())
         assert total > 0
 
@@ -164,7 +163,7 @@ class TestMultiCategoricalEmbedding:
         assert out.shape == (16, emb.output_dim)
 
     def test_output_dim_is_sum_of_embed_dims(self):
-        emb = MultiCategoricalEmbedding(cardinalities=[10, 20, 30], embed_dims=[4, 8, 12])
+        emb = MultiCategoricalEmbedding(cardinalities=[10, 20, 30], embed_dims=[4, 8, 12])  # noqa: E501
         assert emb.output_dim == 4 + 8 + 12
 
     def test_mismatched_dims_raises(self):
@@ -240,7 +239,7 @@ class TestPatchEmbedding:
 
 class TestTubeletEmbedding:
     def test_output_shape(self):
-        emb = TubeletEmbedding(image_size=32, patch_size=8, tubelet_size=2, embed_dim=64)
+        emb = TubeletEmbedding(image_size=32, patch_size=8, tubelet_size=2, embed_dim=64)  # noqa: E501
         video = torch.randn(2, 3, 8, 32, 32)   # (B, C, T, H, W)
         out = emb(video)
         # T/2 * H/8 * W/8 = 4 * 4 * 4 = 64 tubelets
@@ -254,7 +253,7 @@ class TestTubeletEmbedding:
         assert out.shape == (2, 64, 4, 4, 4)
 
     def test_gradient_flows(self):
-        emb = TubeletEmbedding(image_size=16, patch_size=8, tubelet_size=2, embed_dim=32)
+        emb = TubeletEmbedding(image_size=16, patch_size=8, tubelet_size=2, embed_dim=32)  # noqa: E501
         video = torch.randn(1, 3, 4, 16, 16, requires_grad=True)
         out = emb(video)
         out.sum().backward()

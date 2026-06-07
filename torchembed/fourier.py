@@ -2,16 +2,16 @@
 Fourier feature embeddings.
 
 Includes:
-- RandomFourierFeatures: Bochner's theorem-based kernel approximation (Rahimi & Recht, 2007)
+- RandomFourierFeatures: Random Fourier Features for kernel approximation
 - LearnedFourierFeatures: Trainable version of random Fourier features
-- GaussianFourierProjection: Used in diffusion models for continuous time/noise embedding
+- GaussianFourierProjection: Diffusion model continuous timestep embedding
 """
 
 import math
+
 import torch
 import torch.nn as nn
 from torch import Tensor
-from typing import Optional
 
 
 class RandomFourierFeatures(nn.Module):
@@ -95,7 +95,9 @@ class LearnedFourierFeatures(nn.Module):
 
     Example::
 
-        lff = LearnedFourierFeatures(in_features=3, num_frequencies=128, out_features=256)
+        lff = LearnedFourierFeatures(
+            in_features=3, num_frequencies=128, out_features=256
+        )
         x = torch.randn(16, 3)
         features = lff(x)    # (16, 256)
     """

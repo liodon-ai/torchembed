@@ -9,10 +9,11 @@ Includes:
 """
 
 import math
+from typing import Optional
+
 import torch
 import torch.nn as nn
 from torch import Tensor
-from typing import Optional, Tuple
 
 
 class RotaryEmbedding(nn.Module):
@@ -60,7 +61,7 @@ class RotaryEmbedding(nn.Module):
         self.base = base
 
         # Precompute inverse frequencies: shape (dim/2,)
-        inv_freq = 1.0 / (base ** (torch.arange(0, dim, 2, device=device).float() / dim))
+        inv_freq = 1.0 / (base ** (torch.arange(0, dim, 2, device=device).float() / dim))  # noqa: E501
         self.register_buffer("inv_freq", inv_freq, persistent=False)
 
         # Precompute cos/sin cache
@@ -78,7 +79,7 @@ class RotaryEmbedding(nn.Module):
         x1, x2 = x.chunk(2, dim=-1)
         return torch.cat([-x2, x1], dim=-1)
 
-    def forward(self, q: Tensor, k: Tensor, seq_dim: int = -2) -> Tuple[Tensor, Tensor]:
+    def forward(self, q: Tensor, k: Tensor, seq_dim: int = -2) -> tuple[Tensor, Tensor]:
         """Apply rotary embeddings to query and key tensors.
 
         Args:

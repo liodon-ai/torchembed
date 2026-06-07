@@ -8,10 +8,10 @@ Includes:
 """
 
 import math
+
 import torch
 import torch.nn as nn
 from torch import Tensor
-from typing import Optional, Sequence
 
 
 class CyclicEmbedding(nn.Module):

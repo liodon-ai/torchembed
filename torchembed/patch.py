@@ -7,11 +7,10 @@ Includes:
 """
 
 import math
-import torch
+from typing import Optional, Union
+
 import torch.nn as nn
-import torch.nn.functional as F
 from torch import Tensor
-from typing import Optional, Tuple, Union
 
 
 class PatchEmbedding(nn.Module):
@@ -50,8 +49,8 @@ class PatchEmbedding(nn.Module):
 
     def __init__(
         self,
-        image_size: Union[int, Tuple[int, int]] = 224,
-        patch_size: Union[int, Tuple[int, int]] = 16,
+        image_size: Union[int, tuple[int, int]] = 224,
+        patch_size: Union[int, tuple[int, int]] = 16,
         in_channels: int = 3,
         embed_dim: int = 768,
         bias: bool = True,
@@ -60,8 +59,12 @@ class PatchEmbedding(nn.Module):
     ) -> None:
         super().__init__()
 
-        image_size = (image_size, image_size) if isinstance(image_size, int) else image_size
-        patch_size = (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
+        image_size = (
+            (image_size, image_size) if isinstance(image_size, int) else image_size
+        )
+        patch_size = (
+            (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
+        )
 
         if image_size[0] % patch_size[0] != 0 or image_size[1] % patch_size[1] != 0:
             raise ValueError(
@@ -74,7 +77,7 @@ class PatchEmbedding(nn.Module):
         self.embed_dim = embed_dim
         self.flatten = flatten
 
-        self.grid_size: Tuple[int, int] = (
+        self.grid_size: tuple[int, int] = (
             image_size[0] // patch_size[0],
             image_size[1] // patch_size[1],
         )
@@ -156,18 +159,23 @@ class TubeletEmbedding(nn.Module):
 
     def __init__(
         self,
-        image_size: Union[int, Tuple[int, int]] = 224,
-        patch_size: Union[int, Tuple[int, int]] = 16,
+        image_size: Union[int, tuple[int, int]] = 224,
+        patch_size: Union[int, tuple[int, int]] = 16,
         tubelet_size: int = 2,
         in_channels: int = 3,
         embed_dim: int = 768,
         bias: bool = True,
+        norm_layer: Optional[nn.Module] = None,
         flatten: bool = True,
     ) -> None:
         super().__init__()
 
-        image_size = (image_size, image_size) if isinstance(image_size, int) else image_size
-        patch_size = (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
+        image_size = (
+            (image_size, image_size) if isinstance(image_size, int) else image_size
+        )
+        patch_size = (
+            (patch_size, patch_size) if isinstance(patch_size, int) else patch_size
+        )
 
         self.image_size = image_size
         self.patch_size = patch_size
@@ -187,6 +195,7 @@ class TubeletEmbedding(nn.Module):
             stride=(tubelet_size, *patch_size),
             bias=bias,
         )
+        self.norm = norm_layer if norm_layer is not None else nn.Identity()
         self._init_weights()
 
     def _init_weights(self) -> None:
@@ -214,4 +223,4 @@ class TubeletEmbedding(nn.Module):
         if self.flatten:
             B, C, T, H, W = x.shape
             x = x.flatten(2).transpose(1, 2)   # (B, T*H*W, embed_dim)
-        return x
+        return self.norm(x)
