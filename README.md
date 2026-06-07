@@ -317,6 +317,16 @@ pip install torchembed[dev]
 pytest
 ```
 
+## Building API docs
+
+```bash
+pip install torchembed[dev]
+make docs    # generates docs/api/
+make docs-serve  # serves at http://localhost:8080
+```
+
+API docs are generated from docstrings using [pdoc](https://pdoc.dev/). The hand-written guides in [`docs/`](docs/) complement the API reference. Source code uses Google-style docstrings.
+
 ---
 
 ## Contributing

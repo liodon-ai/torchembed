@@ -73,3 +73,13 @@ The fused kernel combines cos/sin lookup, rotate-half, and element-wise multipli
 pip install torchembed[dev]
 pytest
 ```
+
+## Building API docs
+
+```bash
+pip install torchembed[dev]
+make docs   # generates docs/api/
+make docs-serve  # live preview at http://localhost:8080
+```
+
+The API reference is auto-generated from docstrings using [pdoc](https://pdoc.dev/). Hand-written guides for each module are in this directory.
