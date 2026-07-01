@@ -191,6 +191,111 @@ class TestFusedRotaryEmbedding:
         torch.testing.assert_close(q_fused, q_ref, atol=1e-5, rtol=1e-5)
         torch.testing.assert_close(k_fused, k_ref, atol=1e-5, rtol=1e-5)
 
+    # dtype -> (atol, rtol). Vanilla always computes in fp32 (cos/sin are fp32,
+    # so PyTorch's type promotion upcasts); the fused kernel keeps the input's
+    # native dtype end to end, so lower-precision dtypes need looser tolerances.
+    _DTYPE_TOL = {
+        torch.float32: dict(atol=1e-5, rtol=1e-5),
+        torch.float16: dict(atol=2e-2, rtol=2e-2),
+        torch.bfloat16: dict(atol=5e-2, rtol=5e-2),
+    }
+
+    @pytest.mark.parametrize("dtype", [torch.float32, torch.float16, torch.bfloat16])
+    def test_forward_parity(self, batch_size, num_heads, seq_len, dim, dtype):
+        """Fused forward must match vanilla forward across the full shape x dtype
+        matrix (batch size, head count, sequence length, head dim, precision) —
+        not just the one or two hand-picked shapes the earlier tests used.
+        """
+        if not torch.cuda.is_available():
+            pytest.skip("CUDA not available")
+        torch.manual_seed(0)
+        rope = RotaryEmbedding(dim=dim, device="cuda")
+        q = torch.randn(batch_size, num_heads, seq_len, dim, device="cuda", dtype=dtype)
+        k = torch.randn(batch_size, num_heads, seq_len, dim, device="cuda", dtype=dtype)
+
+        q_ref, k_ref = rope(q, k)  # vanilla path (fp32 internally)
+        cos, sin = rope.cos_cache[:seq_len], rope.sin_cache[:seq_len]
+        q_fused, k_fused = rope._fused_forward(q, k, cos, sin)
+
+        assert q_fused.dtype == dtype
+        assert k_fused.dtype == dtype
+        tol = self._DTYPE_TOL[dtype]
+        torch.testing.assert_close(q_fused.float(), q_ref, **tol)
+        torch.testing.assert_close(k_fused.float(), k_ref, **tol)
+
+    @pytest.mark.parametrize("dtype", [torch.float32, torch.float16, torch.bfloat16])
+    def test_backward_parity(self, batch_size, num_heads, seq_len, dim, dtype):
+        """Fused backward must match vanilla backward across the full shape x
+        dtype matrix, using an independent random upstream gradient (not just
+        ``.sum()``, whose all-ones upstream gradient can hide sign/axis errors
+        that a generic gradient would expose).
+        """
+        if not torch.cuda.is_available():
+            pytest.skip("CUDA not available")
+        torch.manual_seed(0)
+        rope = RotaryEmbedding(dim=dim, device="cuda")
+        cos, sin = rope.cos_cache[:seq_len], rope.sin_cache[:seq_len]
+
+        q_base = torch.randn(batch_size, num_heads, seq_len, dim, device="cuda", dtype=dtype)
+        k_base = torch.randn(batch_size, num_heads, seq_len, dim, device="cuda", dtype=dtype)
+        grad_q_up = torch.randn_like(q_base)
+        grad_k_up = torch.randn_like(k_base)
+
+        q_ref = q_base.clone().requires_grad_(True)
+        k_ref = k_base.clone().requires_grad_(True)
+        q_rot_ref, k_rot_ref = rope._vanilla_forward(q_ref, k_ref, cos, sin)
+        q_rot_ref.backward(grad_q_up, retain_graph=True)
+        k_rot_ref.backward(grad_k_up)
+
+        q_fused = q_base.clone().requires_grad_(True)
+        k_fused = k_base.clone().requires_grad_(True)
+        q_rot_fused, k_rot_fused = rope._fused_forward(q_fused, k_fused, cos, sin)
+        q_rot_fused.backward(grad_q_up, retain_graph=True)
+        k_rot_fused.backward(grad_k_up)
+
+        tol = self._DTYPE_TOL[dtype]
+        torch.testing.assert_close(q_fused.grad.float(), q_ref.grad.float(), **tol)
+        torch.testing.assert_close(k_fused.grad.float(), k_ref.grad.float(), **tol)
+
+    def test_noncontiguous_forward_backward_parity(self, dim):
+        """Real callers often pass permuted (non-contiguous) tensors — e.g.
+        swapping the sequence and head axes before applying RoPE. The kernel
+        reshapes its input before computing strides, so it must stay correct
+        for both forward and backward even when the input isn't contiguous.
+        """
+        if not torch.cuda.is_available():
+            pytest.skip("CUDA not available")
+        torch.manual_seed(0)
+        rope = RotaryEmbedding(dim=dim, device="cuda")
+
+        # (batch, seq, heads, dim) permuted to (batch, heads, seq, dim): non-contiguous.
+        base = torch.randn(2, 8, 4, dim, device="cuda")
+        q_base = base.permute(0, 2, 1, 3)
+        k_base = base.clone().permute(0, 2, 1, 3)
+        assert not q_base.is_contiguous()
+        seq_len = q_base.shape[-2]
+        cos, sin = rope.cos_cache[:seq_len], rope.sin_cache[:seq_len]
+        grad_q_up = torch.randn_like(q_base)
+        grad_k_up = torch.randn_like(k_base)
+
+        q_ref = q_base.clone().detach().requires_grad_(True)
+        k_ref = k_base.clone().detach().requires_grad_(True)
+        q_rot_ref, k_rot_ref = rope._vanilla_forward(q_ref, k_ref, cos, sin)
+        q_rot_ref.backward(grad_q_up, retain_graph=True)
+        k_rot_ref.backward(grad_k_up)
+
+        q_fused = q_base.clone().detach().requires_grad_(True)
+        k_fused = k_base.clone().detach().requires_grad_(True)
+        q_rot_fused, k_rot_fused = rope._fused_forward(q_fused, k_fused, cos, sin)
+        q_rot_fused.backward(grad_q_up, retain_graph=True)
+        k_rot_fused.backward(grad_k_up)
+
+        tol = self._DTYPE_TOL[torch.float32]
+        torch.testing.assert_close(q_rot_fused.float(), q_rot_ref.float(), **tol)
+        torch.testing.assert_close(k_rot_fused.float(), k_rot_ref.float(), **tol)
+        torch.testing.assert_close(q_fused.grad.float(), q_ref.grad.float(), **tol)
+        torch.testing.assert_close(k_fused.grad.float(), k_ref.grad.float(), **tol)
+
 
 class TestALiBiEmbedding:
     def test_output_shape(self, batch_size, num_heads, seq_len):
