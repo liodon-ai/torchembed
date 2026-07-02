@@ -5,10 +5,10 @@ MODULES = torchembed torchembed.positional torchembed.fourier \
           torchembed._triton
 
 docs:
-	pdoc -o docs/api --docformat google $(MODULES)
+	pdoc -o docs/api -t docs/dracula --docformat google $(MODULES)
 
 docs-serve:
-	pdoc --docformat google $(MODULES)
+	pdoc -t docs/dracula --docformat google $(MODULES)
 
 test:
 	python -m pytest tests/ -v

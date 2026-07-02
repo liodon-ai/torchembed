@@ -32,9 +32,10 @@ jobs:
 
       - name: Build API docs
         run: |
-          pdoc -o docs/api --docformat google \
+          pdoc -o docs/api -t docs/dracula --docformat google \
             torchembed torchembed.positional torchembed.fourier \
-            torchembed.categorical torchembed.patch torchembed.temporal
+            torchembed.categorical torchembed.patch torchembed.temporal \
+            torchembed._triton
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
