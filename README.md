@@ -1,5 +1,11 @@
 # torchembed
 
+<p align="center">
+  <a href="https://github.com/liodon-ai/torchembed">
+    <img src="assets/logo/torchembed.png" width="750" height="300" alt="torchembed Logo"/>
+  </a>
+</p>
+
 **Modern embedding strategies for PyTorch — the ones missing from `torch.nn`.**
 
 `torch.nn` gives you `nn.Embedding` (a lookup table). That's it. The moment you work with continuous inputs, modern transformer architectures, coordinates, time, or tabular data, you're on your own — copy-pasting RoPE implementations across projects. **torchembed** is a single, well-tested, pip-installable home for all of them.
