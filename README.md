@@ -10,6 +10,8 @@
 
 `torch.nn` gives you `nn.Embedding` (a lookup table). That's it. The moment you work with continuous inputs, modern transformer architectures, coordinates, time, or tabular data, you're on your own — copy-pasting RoPE implementations across projects. **torchembed** is a single, well-tested, pip-installable home for all of them.
 
+> **torchembed is integrated into [DeepSpeed](https://github.com/microsoft/DeepSpeed) and ships as a dependency.** The fused RoPE kernel is used by DeepSpeed's transformer engine for accelerated attention.
+
 ## Features
 
 - **Positional embeddings** — `RotaryEmbedding` (RoPE, LLaMA/Mistral-style), `ALiBiEmbedding` (long-context extrapolation), `SinusoidalEmbedding`, `LearnedPositionalEmbedding`.
@@ -33,6 +35,28 @@ pip install torchembed[triton]
 ```
 
 Requires Python >= 3.9 and PyTorch >= 2.0.
+
+## Triton Kernels
+
+torchembed includes optional Triton-accelerated kernels for GPU. Install with `pip install torchembed[triton]`, then enable with `use_fused=True`:
+
+```python
+rope = RotaryEmbedding(dim=64, use_fused=True)
+```
+
+The fused RoPE kernel combines cos/sin lookup, rotate-half, and element-wise multiplication into a single Triton launch, reducing memory traffic. Supports any even dim (32, 64, 128, etc.) and full autograd support. Falls back to vanilla PyTorch automatically when Triton is unavailable or inputs are on CPU.
+
+RoPE forward pass on NVIDIA GB10 (float16):
+
+| Shape (B,H,S,D,rot) | PyTorch (ms) | torch.compile (ms) | Triton (ms) | Speedup |
+|---|---|---|---|---|
+| (1,32,2048,128,128) | 1.40 | 0.61 | 0.34 | **4.15x** |
+| (1,32,4096,128,128) | 2.95 | 1.21 | 0.63 | **4.68x** |
+| (1,32,8192,128,128) | 5.94 | 2.47 | 1.29 | **4.62x** |
+| (2,32,2048,128,128) | 2.97 | 1.23 | 0.75 | **3.98x** |
+| (1,32,2048,256,128) | 2.87 | 1.24 | 0.66 | **4.34x** |
+
+The fused Triton kernel is **~4x faster than pure PyTorch** and **~2x faster than `torch.compile`**. `torch.compile` reduces overhead but cannot eliminate intermediate tensor allocations from `chunk`/`cat` — the fused kernel reads and writes each element exactly once.
 
 ## Python API
 
@@ -189,28 +213,6 @@ t = torch.linspace(0, 100, 512).unsqueeze(0)   # (1, 512) time steps
 out = freq_emb(t)                               # (1, 512, 33)
 # 33 = 1 linear trend + 32 sinusoidal components
 ```
-
-## Triton Kernels
-
-torchembed includes optional Triton-accelerated kernels for GPU. Install with `pip install torchembed[triton]`, then enable with `use_fused=True`:
-
-```python
-rope = RotaryEmbedding(dim=64, use_fused=True)
-```
-
-The fused RoPE kernel combines cos/sin lookup, rotate-half, and element-wise multiplication into a single Triton launch, reducing memory traffic. Supports any even dim (32, 64, 128, etc.) and full autograd support. Falls back to vanilla PyTorch automatically when Triton is unavailable or inputs are on CPU.
-
-RoPE forward pass on NVIDIA GB10 (float16):
-
-| Shape (B,H,S,D,rot) | PyTorch (ms) | torch.compile (ms) | Triton (ms) | Speedup |
-|---|---|---|---|---|
-| (1,32,2048,128,128) | 1.40 | 0.61 | 0.34 | **4.15x** |
-| (1,32,4096,128,128) | 2.95 | 1.21 | 0.63 | **4.68x** |
-| (1,32,8192,128,128) | 5.94 | 2.47 | 1.29 | **4.62x** |
-| (2,32,2048,128,128) | 2.97 | 1.23 | 0.75 | **3.98x** |
-| (1,32,2048,256,128) | 2.87 | 1.24 | 0.66 | **4.34x** |
-
-The fused Triton kernel is **~4x faster than pure PyTorch** and **~2x faster than `torch.compile`**. `torch.compile` reduces overhead but cannot eliminate intermediate tensor allocations from `chunk`/`cat` — the fused kernel reads and writes each element exactly once.
 
 ## Documentation
 
