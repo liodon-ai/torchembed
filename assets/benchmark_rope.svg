@@ -1,179 +1,194 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 390" width="900" height="390">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400">
 <style>
-/* light */
 .bg   { fill: #f6f8fa; }
 .surf { fill: #ffffff; stroke: #d0d7de; stroke-width: 1; }
 .grid { stroke: #eaeef2; stroke-width: 1; }
-.ax   { stroke: #d0d7de; stroke-width: 1; }
 .ttl  { font: 600 13px system-ui,sans-serif; fill: #1f2328; }
-.sub  { font: 11px system-ui,sans-serif;     fill: #656d76; }
-.lbl  { font: 10.5px ui-monospace,monospace; fill: #656d76;
-        font-variant-numeric: tabular-nums; }
+.sub  { font: 11px system-ui,sans-serif; fill: #656d76; }
+.lbl  { font: 10.5px ui-monospace,monospace; fill: #656d76; font-variant-numeric: tabular-nums; }
 .albl { font: 10px system-ui,sans-serif; fill: #656d76; letter-spacing:.04em; text-transform:uppercase; }
-.ltxt { font: 11.5px system-ui,sans-serif; fill: #1f2328; }
+.ltxt { font: 11px system-ui,sans-serif; fill: #1f2328; }
+.peak { font: bold 11px ui-monospace,monospace; fill: #1a56db; }
+.note { font: 10px system-ui,sans-serif; fill: #656d76; font-style: italic; }
 
-/* series */
-.l-pt  { stroke: #cf4500; stroke-width: 2;   fill: none; }
-.l-co  { stroke: #b56b00; stroke-width: 2;   fill: none; stroke-dasharray:5,3; }
-.l-tr  { stroke: #1a56db; stroke-width: 2.5; fill: none; }
-.l-sp  { stroke: #1a56db; stroke-width: 2.5; fill: none; }
-.a-pt  { fill: rgba(207,69,0,.07);   stroke:none; }
-.a-co  { fill: rgba(181,107,0,.06);  stroke:none; }
-.a-tr  { fill: rgba(26,86,219,.09);  stroke:none; }
-.a-sp  { fill: rgba(26,86,219,.08);  stroke:none; }
-.d-pt  { fill: #cf4500; }
-.d-co  { fill: #b56b00; }
-.d-tr  { fill: #1a56db; }
-.d-sp  { fill: #1a56db; }
-.ref   { stroke: #b0b8c1; stroke-width:1; stroke-dasharray:3,3; fill:none; }
-.peak  { font: bold 11px ui-monospace,monospace; fill: #1a56db; }
+.l-pt { stroke: #cf4500; stroke-width: 2;   fill: none; }
+.l-co { stroke: #b56b00; stroke-width: 2;   fill: none; stroke-dasharray:5,3; }
+.l-cx { stroke: #6f42c1; stroke-width: 2;   fill: none; stroke-dasharray:2,3; }
+.l-tr { stroke: #1a56db; stroke-width: 2.5; fill: none; }
+.a-tr { fill: rgba(26,86,219,.08); stroke: none; }
+.d-pt { fill: #cf4500; } .d-co { fill: #b56b00; }
+.d-cx { fill: #6f42c1; } .d-tr { fill: #1a56db; }
+
+.l-svpt { stroke: #1a56db; stroke-width: 2.5; fill: none; }
+.l-svcx { stroke: #6f42c1; stroke-width: 2;   fill: none; stroke-dasharray:5,3; }
+.a-svpt { fill: rgba(26,86,219,.08); stroke: none; }
+.a-svcx { fill: rgba(111,66,193,.07); stroke: none; }
+.d-svpt { fill: #1a56db; } .d-svcx { fill: #6f42c1; }
 
 @media (prefers-color-scheme: dark) {
-  .bg   { fill: #0d1117; }
-  .surf { fill: #161b22; stroke: #30363d; }
-  .grid { stroke: #21262d; }
-  .ax   { stroke: #30363d; }
-  .ttl  { fill: #e6edf3; }
-  .sub  { fill: #8b949e; }
-  .lbl  { fill: #8b949e; }
-  .albl { fill: #8b949e; }
-  .ltxt { fill: #e6edf3; }
-  .l-pt { stroke: #f78166; }
-  .l-co { stroke: #d29922; }
-  .l-tr { stroke: #58a6ff; }
-  .l-sp { stroke: #58a6ff; }
-  .a-pt { fill: rgba(247,129,102,.08); }
-  .a-co { fill: rgba(210,153,34,.07);  }
-  .a-tr { fill: rgba(88,166,255,.10);  }
-  .a-sp { fill: rgba(88,166,255,.09);  }
-  .d-pt { fill: #f78166; }
-  .d-co { fill: #d29922; }
-  .d-tr { fill: #58a6ff; }
-  .d-sp { fill: #58a6ff; }
-  .ref  { stroke: #484f58; }
-  .peak { fill: #58a6ff; }
+  .bg   { fill: #0d1117; } .surf { fill: #161b22; stroke: #30363d; }
+  .grid { stroke: #21262d; } .ttl { fill: #e6edf3; } .sub { fill: #8b949e; }
+  .lbl  { fill: #8b949e; } .albl { fill: #8b949e; } .ltxt { fill: #e6edf3; }
+  .note { fill: #8b949e; } .peak { fill: #58a6ff; }
+  .l-pt { stroke: #f78166; } .l-co { stroke: #d29922; }
+  .l-cx { stroke: #bc8cff; } .l-tr { stroke: #58a6ff; }
+  .a-tr { fill: rgba(88,166,255,.10); }
+  .d-pt { fill: #f78166; } .d-co { fill: #d29922; }
+  .d-cx { fill: #bc8cff; } .d-tr { fill: #58a6ff; }
+  .l-svpt { stroke: #58a6ff; } .l-svcx { stroke: #bc8cff; }
+  .a-svpt { fill: rgba(88,166,255,.10); } .a-svcx { fill: rgba(188,140,255,.08); }
+  .d-svpt { fill: #58a6ff; } .d-svcx { fill: #bc8cff; }
 }
 </style>
-<rect class="bg" x="0" y="0" width="900" height="390"/>
-<rect class="surf" x="64" y="50" width="384" height="275"/>
-<rect class="surf" x="494" y="50" width="384" height="275"/>
-<line class="grid" x1="64" y1="295.4" x2="448" y2="295.4"/>
-<line class="grid" x1="64" y1="256.5" x2="448" y2="256.5"/>
-<line class="grid" x1="64" y1="221.1" x2="448" y2="221.1"/>
-<line class="grid" x1="64" y1="182.2" x2="448" y2="182.2"/>
-<line class="grid" x1="64" y1="146.7" x2="448" y2="146.7"/>
-<line class="grid" x1="64" y1="107.9" x2="448" y2="107.9"/>
-<line class="grid" x1="64" y1="72.4" x2="448" y2="72.4"/>
-<line class="grid" x1="86.4" y1="50" x2="86.4" y2="325"/>
-<line class="grid" x1="134.3" y1="50" x2="134.3" y2="325"/>
-<line class="grid" x1="182.2" y1="50" x2="182.2" y2="325"/>
-<line class="grid" x1="230.1" y1="50" x2="230.1" y2="325"/>
-<line class="grid" x1="278.0" y1="50" x2="278.0" y2="325"/>
-<line class="grid" x1="325.9" y1="50" x2="325.9" y2="325"/>
-<line class="grid" x1="373.7" y1="50" x2="373.7" y2="325"/>
-<line class="grid" x1="421.6" y1="50" x2="421.6" y2="325"/>
-<path class="a-pt" d="M 86.4,253.2 L 134.3,230.6 L 182.2,199.5 L 230.1,173.2 L 278.0,147.5 L 325.9,124.5 L 373.7,102.5 L 421.6,73.9 L 421.6,325 L 86.4,325 Z"/>
-<path class="a-co" d="M 86.4,286.9 L 134.3,256.5 L 182.2,222.4 L 230.1,197.8 L 278.0,173.7 L 325.9,153.8 L 373.7,124.1 L 421.6,101.2 L 421.6,325 L 86.4,325 Z"/>
-<path class="a-tr" d="M 86.4,305.4 L 134.3,292.3 L 182.2,237.9 L 230.1,220.4 L 278.0,199.0 L 325.9,175.5 L 373.7,153.9 L 421.6,127.1 L 421.6,325 L 86.4,325 Z"/>
-<polyline class="l-pt" points="86.4,253.2 134.3,230.6 182.2,199.5 230.1,173.2 278.0,147.5 325.9,124.5 373.7,102.5 421.6,73.9"/>
-<polyline class="l-co" points="86.4,286.9 134.3,256.5 182.2,222.4 230.1,197.8 278.0,173.7 325.9,153.8 373.7,124.1 421.6,101.2"/>
-<polyline class="l-tr" points="86.4,305.4 134.3,292.3 182.2,237.9 230.1,220.4 278.0,199.0 325.9,175.5 373.7,153.9 421.6,127.1"/>
-<circle class="d-pt" cx="86.4" cy="253.2" r="3"/>
-<circle class="d-co" cx="86.4" cy="286.9" r="3"/>
-<circle class="d-tr" cx="86.4" cy="305.4" r="3"/>
-<circle class="d-pt" cx="134.3" cy="230.6" r="3"/>
-<circle class="d-co" cx="134.3" cy="256.5" r="3"/>
-<circle class="d-tr" cx="134.3" cy="292.3" r="3"/>
-<circle class="d-pt" cx="182.2" cy="199.5" r="3"/>
-<circle class="d-co" cx="182.2" cy="222.4" r="3"/>
-<circle class="d-tr" cx="182.2" cy="237.9" r="3"/>
-<circle class="d-pt" cx="230.1" cy="173.2" r="3"/>
-<circle class="d-co" cx="230.1" cy="197.8" r="3"/>
-<circle class="d-tr" cx="230.1" cy="220.4" r="3"/>
-<circle class="d-pt" cx="278.0" cy="147.5" r="3"/>
-<circle class="d-co" cx="278.0" cy="173.7" r="3"/>
-<circle class="d-tr" cx="278.0" cy="199.0" r="3"/>
-<circle class="d-pt" cx="325.9" cy="124.5" r="3"/>
-<circle class="d-co" cx="325.9" cy="153.8" r="3"/>
-<circle class="d-tr" cx="325.9" cy="175.5" r="3"/>
-<circle class="d-pt" cx="373.7" cy="102.5" r="3"/>
-<circle class="d-co" cx="373.7" cy="124.1" r="3"/>
-<circle class="d-tr" cx="373.7" cy="153.9" r="3"/>
-<circle class="d-pt" cx="421.6" cy="73.9" r="3"/>
-<circle class="d-co" cx="421.6" cy="101.2" r="3"/>
-<circle class="d-tr" cx="421.6" cy="127.1" r="3"/>
-<text class="lbl" x="57" y="298.9" text-anchor="end">0.03</text>
-<text class="lbl" x="57" y="260.0" text-anchor="end">0.1</text>
-<text class="lbl" x="57" y="224.6" text-anchor="end">0.3</text>
-<text class="lbl" x="57" y="185.7" text-anchor="end">1</text>
-<text class="lbl" x="57" y="150.2" text-anchor="end">3</text>
-<text class="lbl" x="57" y="111.4" text-anchor="end">10</text>
-<text class="lbl" x="57" y="75.9" text-anchor="end">30</text>
-<text class="lbl" x="86.4" y="339" text-anchor="middle">256</text>
-<text class="lbl" x="134.3" y="339" text-anchor="middle">512</text>
-<text class="lbl" x="182.2" y="339" text-anchor="middle">1K</text>
-<text class="lbl" x="230.1" y="339" text-anchor="middle">2K</text>
-<text class="lbl" x="278.0" y="339" text-anchor="middle">4K</text>
-<text class="lbl" x="325.9" y="339" text-anchor="middle">8K</text>
-<text class="lbl" x="373.7" y="339" text-anchor="middle">16K</text>
-<text class="lbl" x="421.6" y="339" text-anchor="middle">32K</text>
-<text class="albl" transform="translate(18,187) rotate(-90)" text-anchor="middle">Latency (ms)</text>
-<text class="albl" x="256" y="359" text-anchor="middle">Sequence Length</text>
+<rect class="bg" x="0" y="0" width="900" height="400"/>
+<rect class="surf" x="64" y="52" width="384" height="280"/>
+<rect class="surf" x="494" y="52" width="384" height="280"/>
+<line class="grid" x1="64" y1="301.9" x2="448" y2="301.9"/>
+<line class="grid" x1="64" y1="262.3" x2="448" y2="262.3"/>
+<line class="grid" x1="64" y1="226.2" x2="448" y2="226.2"/>
+<line class="grid" x1="64" y1="186.6" x2="448" y2="186.6"/>
+<line class="grid" x1="64" y1="150.5" x2="448" y2="150.5"/>
+<line class="grid" x1="64" y1="110.9" x2="448" y2="110.9"/>
+<line class="grid" x1="64" y1="74.8" x2="448" y2="74.8"/>
+<line class="grid" x1="86.4" y1="52" x2="86.4" y2="332"/>
+<line class="grid" x1="134.3" y1="52" x2="134.3" y2="332"/>
+<line class="grid" x1="182.2" y1="52" x2="182.2" y2="332"/>
+<line class="grid" x1="230.1" y1="52" x2="230.1" y2="332"/>
+<line class="grid" x1="278.0" y1="52" x2="278.0" y2="332"/>
+<line class="grid" x1="325.9" y1="52" x2="325.9" y2="332"/>
+<line class="grid" x1="373.7" y1="52" x2="373.7" y2="332"/>
+<line class="grid" x1="421.6" y1="52" x2="421.6" y2="332"/>
+<path class="a-tr" d="M 86.4,316.9 L 134.3,298.7 L 182.2,246.4 L 230.1,221.5 L 278.0,201.5 L 325.9,179.3 L 373.7,157.1 L 421.6,130.3 L 421.6,332 L 86.4,332 Z"/>
+<polyline class="l-pt" points="86.4,258.0 134.3,235.9 182.2,204.3 230.1,176.8 278.0,151.1 325.9,128.4 373.7,105.4 421.6,76.4"/>
+<polyline class="l-co" points="86.4,295.9 134.3,264.0 182.2,227.4 230.1,200.9 278.0,178.3 325.9,155.3 373.7,127.0 421.6,104.4"/>
+<polyline class="l-cx" points="86.4,249.9 134.3,227.6 182.2,205.1 230.1,176.3 278.0,152.5 325.9,130.0 373.7,101.5 421.6,78.5"/>
+<polyline class="l-tr" points="86.4,316.9 134.3,298.7 182.2,246.4 230.1,221.5 278.0,201.5 325.9,179.3 373.7,157.1 421.6,130.3"/>
+<circle class="d-pt" cx="86.4" cy="258.0" r="2.5"/>
+<circle class="d-co" cx="86.4" cy="295.9" r="2.5"/>
+<circle class="d-cx" cx="86.4" cy="249.9" r="2.5"/>
+<circle class="d-tr" cx="86.4" cy="316.9" r="2.5"/>
+<circle class="d-pt" cx="134.3" cy="235.9" r="2.5"/>
+<circle class="d-co" cx="134.3" cy="264.0" r="2.5"/>
+<circle class="d-cx" cx="134.3" cy="227.6" r="2.5"/>
+<circle class="d-tr" cx="134.3" cy="298.7" r="2.5"/>
+<circle class="d-pt" cx="182.2" cy="204.3" r="2.5"/>
+<circle class="d-co" cx="182.2" cy="227.4" r="2.5"/>
+<circle class="d-cx" cx="182.2" cy="205.1" r="2.5"/>
+<circle class="d-tr" cx="182.2" cy="246.4" r="2.5"/>
+<circle class="d-pt" cx="230.1" cy="176.8" r="2.5"/>
+<circle class="d-co" cx="230.1" cy="200.9" r="2.5"/>
+<circle class="d-cx" cx="230.1" cy="176.3" r="2.5"/>
+<circle class="d-tr" cx="230.1" cy="221.5" r="2.5"/>
+<circle class="d-pt" cx="278.0" cy="151.1" r="2.5"/>
+<circle class="d-co" cx="278.0" cy="178.3" r="2.5"/>
+<circle class="d-cx" cx="278.0" cy="152.5" r="2.5"/>
+<circle class="d-tr" cx="278.0" cy="201.5" r="2.5"/>
+<circle class="d-pt" cx="325.9" cy="128.4" r="2.5"/>
+<circle class="d-co" cx="325.9" cy="155.3" r="2.5"/>
+<circle class="d-cx" cx="325.9" cy="130.0" r="2.5"/>
+<circle class="d-tr" cx="325.9" cy="179.3" r="2.5"/>
+<circle class="d-pt" cx="373.7" cy="105.4" r="2.5"/>
+<circle class="d-co" cx="373.7" cy="127.0" r="2.5"/>
+<circle class="d-cx" cx="373.7" cy="101.5" r="2.5"/>
+<circle class="d-tr" cx="373.7" cy="157.1" r="2.5"/>
+<circle class="d-pt" cx="421.6" cy="76.4" r="2.5"/>
+<circle class="d-co" cx="421.6" cy="104.4" r="2.5"/>
+<circle class="d-cx" cx="421.6" cy="78.5" r="2.5"/>
+<circle class="d-tr" cx="421.6" cy="130.3" r="2.5"/>
+<text class="lbl" x="57" y="305.4" text-anchor="end">0.03</text>
+<text class="lbl" x="57" y="265.8" text-anchor="end">0.1</text>
+<text class="lbl" x="57" y="229.7" text-anchor="end">0.3</text>
+<text class="lbl" x="57" y="190.1" text-anchor="end">1</text>
+<text class="lbl" x="57" y="154.0" text-anchor="end">3</text>
+<text class="lbl" x="57" y="114.4" text-anchor="end">10</text>
+<text class="lbl" x="57" y="78.3" text-anchor="end">30</text>
+<text class="lbl" x="86.4" y="345" text-anchor="middle">256</text>
+<text class="lbl" x="134.3" y="345" text-anchor="middle">512</text>
+<text class="lbl" x="182.2" y="345" text-anchor="middle">1K</text>
+<text class="lbl" x="230.1" y="345" text-anchor="middle">2K</text>
+<text class="lbl" x="278.0" y="345" text-anchor="middle">4K</text>
+<text class="lbl" x="325.9" y="345" text-anchor="middle">8K</text>
+<text class="lbl" x="373.7" y="345" text-anchor="middle">16K</text>
+<text class="lbl" x="421.6" y="345" text-anchor="middle">32K</text>
+<text class="albl" transform="translate(18,192) rotate(-90)" text-anchor="middle">Latency (ms)</text>
+<text class="albl" x="256" y="365" text-anchor="middle">Sequence Length</text>
 <text class="ttl" x="256" y="26" text-anchor="middle">Forward Pass Latency</text>
-<text class="sub" x="256" y="40" text-anchor="middle">B=1 · H=32 · D=128 · float16 · NVIDIA GB10</text>
-<line class="grid" x1="494" y1="325.0" x2="878" y2="325.0"/>
-<line class="grid" x1="494" y1="282.7" x2="878" y2="282.7"/>
-<line class="grid" x1="494" y1="240.4" x2="878" y2="240.4"/>
-<line class="grid" x1="494" y1="198.1" x2="878" y2="198.1"/>
-<line class="grid" x1="494" y1="155.8" x2="878" y2="155.8"/>
-<line class="grid" x1="494" y1="113.5" x2="878" y2="113.5"/>
-<line class="grid" x1="494" y1="71.2" x2="878" y2="71.2"/>
-<line class="grid" x1="516.4" y1="50" x2="516.4" y2="325"/>
-<line class="grid" x1="564.3" y1="50" x2="564.3" y2="325"/>
-<line class="grid" x1="612.2" y1="50" x2="612.2" y2="325"/>
-<line class="grid" x1="660.1" y1="50" x2="660.1" y2="325"/>
-<line class="grid" x1="708.0" y1="50" x2="708.0" y2="325"/>
-<line class="grid" x1="755.9" y1="50" x2="755.9" y2="325"/>
-<line class="grid" x1="803.7" y1="50" x2="803.7" y2="325"/>
-<line class="grid" x1="851.6" y1="50" x2="851.6" y2="325"/>
-<line class="ref" x1="494" y1="240.4" x2="878" y2="240.4"/>
-<path class="a-sp" d="M 516.4,199.8 L 564.3,127.8 L 612.2,270.8 L 660.1,226.8 L 708.0,201.0 L 755.9,204.8 L 803.7,201.5 L 851.6,190.0 L 851.6,325 L 516.4,325 Z"/>
-<polyline class="l-sp" points="516.4,199.8 564.3,127.8 612.2,270.8 660.1,226.8 708.0,201.0 755.9,204.8 803.7,201.5 851.6,190.0"/>
-<circle class="d-sp" cx="516.4" cy="199.8" r="3.5"/>
-<circle class="d-sp" cx="564.3" cy="127.8" r="3.5"/>
-<text class="peak" x="564.3" y="118.8" text-anchor="middle">6.66×</text>
-<circle class="d-sp" cx="612.2" cy="270.8" r="3.5"/>
-<circle class="d-sp" cx="660.1" cy="226.8" r="3.5"/>
-<circle class="d-sp" cx="708.0" cy="201.0" r="3.5"/>
-<circle class="d-sp" cx="755.9" cy="204.8" r="3.5"/>
-<circle class="d-sp" cx="803.7" cy="201.5" r="3.5"/>
-<circle class="d-sp" cx="851.6" cy="190.0" r="3.5"/>
-<text class="lbl" x="487" y="328.5" text-anchor="end">2×</text>
-<text class="lbl" x="487" y="286.2" text-anchor="end">3×</text>
-<text class="lbl" x="487" y="243.9" text-anchor="end">4×</text>
-<text class="lbl" x="487" y="201.6" text-anchor="end">5×</text>
-<text class="lbl" x="487" y="159.3" text-anchor="end">6×</text>
-<text class="lbl" x="487" y="117.0" text-anchor="end">7×</text>
-<text class="lbl" x="487" y="74.7" text-anchor="end">8×</text>
-<text class="lbl" x="516.4" y="339" text-anchor="middle">256</text>
-<text class="lbl" x="564.3" y="339" text-anchor="middle">512</text>
-<text class="lbl" x="612.2" y="339" text-anchor="middle">1K</text>
-<text class="lbl" x="660.1" y="339" text-anchor="middle">2K</text>
-<text class="lbl" x="708.0" y="339" text-anchor="middle">4K</text>
-<text class="lbl" x="755.9" y="339" text-anchor="middle">8K</text>
-<text class="lbl" x="803.7" y="339" text-anchor="middle">16K</text>
-<text class="lbl" x="851.6" y="339" text-anchor="middle">32K</text>
-<text class="albl" transform="translate(448,187) rotate(-90)" text-anchor="middle">Speedup vs. PyTorch</text>
-<text class="albl" x="686" y="359" text-anchor="middle">Sequence Length</text>
-<text class="ttl" x="686" y="26" text-anchor="middle">Triton Kernel Speedup</text>
-<text class="sub" x="686" y="40" text-anchor="middle">Triton fused kernel vs. pure PyTorch</text>
-<line class="l-pt" x1="64" y1="377" x2="84" y2="377"/>
-<circle class="d-pt" cx="74" cy="377" r="3"/>
-<text class="ltxt" x="90" y="381" text-anchor="start">PyTorch</text>
-<line class="l-co" x1="182" y1="377" x2="202" y2="377"/>
-<circle class="d-co" cx="192" cy="377" r="3"/>
-<text class="ltxt" x="208" y="381" text-anchor="start">torch.compile</text>
-<line class="l-tr" x1="300" y1="377" x2="320" y2="377"/>
-<circle class="d-tr" cx="310" cy="377" r="3"/>
-<text class="ltxt" x="326" y="381" text-anchor="start">Triton (ours)</text>
+<text class="sub" x="256" y="39" text-anchor="middle">B=1 · H=32 · D=128 · float16 · NVIDIA GB10</text>
+<line class="grid" x1="494" y1="332.0" x2="878" y2="332.0"/>
+<line class="grid" x1="494" y1="297.0" x2="878" y2="297.0"/>
+<line class="grid" x1="494" y1="262.0" x2="878" y2="262.0"/>
+<line class="grid" x1="494" y1="227.0" x2="878" y2="227.0"/>
+<line class="grid" x1="494" y1="192.0" x2="878" y2="192.0"/>
+<line class="grid" x1="494" y1="157.0" x2="878" y2="157.0"/>
+<line class="grid" x1="494" y1="122.0" x2="878" y2="122.0"/>
+<line class="grid" x1="494" y1="87.0" x2="878" y2="87.0"/>
+<line class="grid" x1="494" y1="52.0" x2="878" y2="52.0"/>
+<line class="grid" x1="516.4" y1="52" x2="516.4" y2="332"/>
+<line class="grid" x1="564.3" y1="52" x2="564.3" y2="332"/>
+<line class="grid" x1="612.2" y1="52" x2="612.2" y2="332"/>
+<line class="grid" x1="660.1" y1="52" x2="660.1" y2="332"/>
+<line class="grid" x1="708.0" y1="52" x2="708.0" y2="332"/>
+<line class="grid" x1="755.9" y1="52" x2="755.9" y2="332"/>
+<line class="grid" x1="803.7" y1="52" x2="803.7" y2="332"/>
+<line class="grid" x1="851.6" y1="52" x2="851.6" y2="332"/>
+<path class="a-svpt" d="M 516.4,190.2 L 564.3,162.9 L 612.2,276.0 L 660.1,265.5 L 708.0,239.6 L 755.9,237.5 L 803.7,233.3 L 851.6,221.4 L 851.6,332 L 516.4,332 Z"/>
+<path class="a-svcx" d="M 516.4,130.1 L 564.3,94.4 L 612.2,278.8 L 660.1,263.8 L 708.0,246.2 L 755.9,245.6 L 803.7,211.6 L 851.6,232.6 L 851.6,332 L 516.4,332 Z"/>
+<polyline class="l-svpt" points="516.4,190.2 564.3,162.9 612.2,276.0 660.1,265.5 708.0,239.6 755.9,237.5 803.7,233.3 851.6,221.4"/>
+<polyline class="l-svcx" points="516.4,130.1 564.3,94.4 612.2,278.8 660.1,263.8 708.0,246.2 755.9,245.6 803.7,211.6 851.6,232.6"/>
+<circle class="d-svpt" cx="516.4" cy="190.2" r="3"/>
+<circle class="d-svcx" cx="516.4" cy="130.1" r="3"/>
+<circle class="d-svpt" cx="564.3" cy="162.9" r="3"/>
+<circle class="d-svcx" cx="564.3" cy="94.4" r="3"/>
+<text class="peak" x="564.3" y="86.4" text-anchor="middle">8.79×</text>
+<circle class="d-svpt" cx="612.2" cy="276.0" r="3"/>
+<circle class="d-svcx" cx="612.2" cy="278.8" r="3"/>
+<circle class="d-svpt" cx="660.1" cy="265.5" r="3"/>
+<circle class="d-svcx" cx="660.1" cy="263.8" r="3"/>
+<circle class="d-svpt" cx="708.0" cy="239.6" r="3"/>
+<circle class="d-svcx" cx="708.0" cy="246.2" r="3"/>
+<circle class="d-svpt" cx="755.9" cy="237.5" r="3"/>
+<circle class="d-svcx" cx="755.9" cy="245.6" r="3"/>
+<circle class="d-svpt" cx="803.7" cy="233.3" r="3"/>
+<circle class="d-svcx" cx="803.7" cy="211.6" r="3"/>
+<circle class="d-svpt" cx="851.6" cy="221.4" r="3"/>
+<circle class="d-svcx" cx="851.6" cy="232.6" r="3"/>
+<text class="lbl" x="487" y="335.5" text-anchor="end">2×</text>
+<text class="lbl" x="487" y="300.5" text-anchor="end">3×</text>
+<text class="lbl" x="487" y="265.5" text-anchor="end">4×</text>
+<text class="lbl" x="487" y="230.5" text-anchor="end">5×</text>
+<text class="lbl" x="487" y="195.5" text-anchor="end">6×</text>
+<text class="lbl" x="487" y="160.5" text-anchor="end">7×</text>
+<text class="lbl" x="487" y="125.5" text-anchor="end">8×</text>
+<text class="lbl" x="487" y="90.5" text-anchor="end">9×</text>
+<text class="lbl" x="487" y="55.5" text-anchor="end">10×</text>
+<text class="lbl" x="516.4" y="345" text-anchor="middle">256</text>
+<text class="lbl" x="564.3" y="345" text-anchor="middle">512</text>
+<text class="lbl" x="612.2" y="345" text-anchor="middle">1K</text>
+<text class="lbl" x="660.1" y="345" text-anchor="middle">2K</text>
+<text class="lbl" x="708.0" y="345" text-anchor="middle">4K</text>
+<text class="lbl" x="755.9" y="345" text-anchor="middle">8K</text>
+<text class="lbl" x="803.7" y="345" text-anchor="middle">16K</text>
+<text class="lbl" x="851.6" y="345" text-anchor="middle">32K</text>
+<text class="albl" transform="translate(448,192) rotate(-90)" text-anchor="middle">Triton Speedup</text>
+<text class="albl" x="686" y="365" text-anchor="middle">Sequence Length</text>
+<text class="ttl" x="686" y="26" text-anchor="middle">Triton Speedup</text>
+<text class="sub" x="686" y="39" text-anchor="middle">vs. rotate-half · vs. view_as_complex (float16)</text>
+<line class="l-pt" x1="64" y1="386" x2="82" y2="386"/>
+<circle class="d-pt" cx="73" cy="386" r="2.5"/>
+<text class="ltxt" x="88" y="390" text-anchor="start">rotate_half (PyTorch)</text>
+<line class="l-co" x1="212" y1="386" x2="230" y2="386"/>
+<circle class="d-co" cx="221" cy="386" r="2.5"/>
+<text class="ltxt" x="236" y="390" text-anchor="start">+ torch.compile</text>
+<line class="l-cx" x1="360" y1="386" x2="378" y2="386"/>
+<circle class="d-cx" cx="369" cy="386" r="2.5"/>
+<text class="ltxt" x="384" y="390" text-anchor="start">view_as_complex</text>
+<line class="l-tr" x1="508" y1="386" x2="526" y2="386"/>
+<circle class="d-tr" cx="517" cy="386" r="2.5"/>
+<text class="ltxt" x="532" y="390" text-anchor="start">Triton (ours)</text>
+<line class="l-svpt" x1="494" y1="386" x2="512" y2="386"/>
+<circle class="d-svpt" cx="503" cy="386" r="2.5"/>
+<text class="ltxt" x="518" y="390" text-anchor="start">vs. rotate_half</text>
+<line class="l-svcx" x1="654" y1="386" x2="672" y2="386"/>
+<circle class="d-svcx" cx="663" cy="386" r="2.5"/>
+<text class="ltxt" x="678" y="390" text-anchor="start">vs. view_as_complex</text>
 </svg>

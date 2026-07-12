@@ -1,5 +1,5 @@
 """
-Benchmark: Pure PyTorch vs torch.compile vs Triton for RoPE
+Benchmark: Pure PyTorch vs torch.compile vs view_as_complex vs Triton for RoPE
 Addresses: https://github.com/facebookresearch/xformers/pull/1397#issuecomment-4649811732
 """
 
@@ -9,7 +9,7 @@ import triton.language as tl
 import time
 
 # ---------------------------------------------------------
-# 1. Pure PyTorch Reference (PR fallback)
+# 1. Pure PyTorch Reference — rotate_half (chunk/cat)
 # ---------------------------------------------------------
 def rope_pytorch(q, k, cos, sin):
     def rotate_half(x):
@@ -20,6 +20,24 @@ def rope_pytorch(q, k, cos, sin):
     return q_out, k_out
 
 rope_compiled = torch.compile(rope_pytorch, mode="reduce-overhead")
+
+# ---------------------------------------------------------
+# 2. view_as_complex — avoids chunk/cat allocations
+# ---------------------------------------------------------
+def rope_complex(q, k, cos, sin):
+    # cos/sin shape: (S, D) — treat as complex (S, D//2)
+    def apply(x, cos, sin):
+        B, H, S, D = x.shape
+        xc = torch.view_as_complex(x.reshape(B, H, S, D // 2, 2).float())
+        rc = torch.view_as_complex(torch.stack([cos, sin], dim=-1).float())  # (S, D//2)
+        out = torch.view_as_real(xc * rc).flatten(-2).to(x.dtype)
+        return out
+    # cos/sin passed as (S, D) full-dim; take first D//2 pairs
+    cos_h = cos[..., :cos.shape[-1] // 2]
+    sin_h = sin[..., :sin.shape[-1] // 2]
+    return apply(q, cos_h, sin_h), apply(k, cos_h, sin_h)
+
+rope_complex_compiled = torch.compile(rope_complex, mode="reduce-overhead")
 
 # ---------------------------------------------------------
 # 2. Triton Fused Kernel
@@ -115,39 +133,26 @@ def run_benchmarks():
         print("CUDA not available.")
         return
 
-    shapes = [
-        (1, 32, 2048, 128, 128),
-        (1, 32, 4096, 128, 128),
-        (1, 32, 8192, 128, 128),
-        (2, 32, 2048, 128, 128),
-        (1, 32, 2048, 256, 128),
-    ]
+    B, H, D, rot = 1, 32, 128, 128
+    seq_lens = [256, 512, 1024, 2048, 4096, 8192, 16384, 32768]
 
-    print(f"{'Shape (B,H,S,D,rot)':<35} | {'PyTorch (ms)':<12} | {'torch.compile (ms)':<18} | {'Triton (ms)':<12} | {'Speedup'}")
-    print("-" * 95)
+    print(f"B={B} H={H} D={D} rot_dim={rot}  dtype=float16  device=cuda")
+    print(f"{'S':<8} | {'PyTorch':>10} | {'compile':>10} | {'complex':>10} | {'cx+cmp':>10} | {'Triton':>10} | {'vs PT':>7} | {'vs cx':>7}")
+    print("-" * 90)
 
-    for B, H, S, D, rot_dim in shapes:
-        q = torch.randn(B, H, S, D, device="cuda", dtype=torch.float16)
-        k = torch.randn(B, H, S, D, device="cuda", dtype=torch.float16)
-        cos = torch.randn(S, rot_dim, device="cuda", dtype=torch.float16)
-        sin = torch.randn(S, rot_dim, device="cuda", dtype=torch.float16)
-        
-        # Pad cos/sin to match dim for PyTorch reference (partial rotary handling)
-        if rot_dim < D:
-            cos_full = torch.zeros(S, D, device="cuda", dtype=torch.float16)
-            sin_full = torch.zeros(S, D, device="cuda", dtype=torch.float16)
-            cos_full[:, :rot_dim] = cos
-            sin_full[:, :rot_dim] = sin
-        else:
-            cos_full, sin_full = cos, sin
+    for S in seq_lens:
+        q   = torch.randn(B, H, S, D,  device="cuda", dtype=torch.float16)
+        k   = torch.randn(B, H, S, D,  device="cuda", dtype=torch.float16)
+        cos = torch.randn(S, D,         device="cuda", dtype=torch.float16)
+        sin = torch.randn(S, D,         device="cuda", dtype=torch.float16)
 
-        t_py = benchmark_fn(rope_pytorch, q, k, cos_full, sin_full)
-        t_co = benchmark_fn(rope_compiled, q, k, cos_full, sin_full)
-        t_tr = benchmark_fn(rope_triton, q, k, cos, sin)
+        t_py  = benchmark_fn(rope_pytorch,          q, k, cos, sin)
+        t_co  = benchmark_fn(rope_compiled,          q, k, cos, sin)
+        t_cx  = benchmark_fn(rope_complex,           q, k, cos, sin)
+        t_cxc = benchmark_fn(rope_complex_compiled,  q, k, cos, sin)
+        t_tr  = benchmark_fn(rope_triton,            q, k, cos, sin)
 
-        speedup = t_py / t_tr
-        shape_str = f"({B},{H},{S},{D},{rot_dim})"
-        print(f"{shape_str:<35} | {t_py:<12.3f} | {t_co:<18.3f} | {t_tr:<12.3f} | {speedup:.2f}x")
+        print(f"{S:<8} | {t_py:>9.3f}ms | {t_co:>9.3f}ms | {t_cx:>9.3f}ms | {t_cxc:>9.3f}ms | {t_tr:>9.3f}ms | {t_py/t_tr:>6.2f}x | {t_cx/t_tr:>6.2f}x")
 
 if __name__ == "__main__":
     run_benchmarks()

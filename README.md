@@ -65,7 +65,9 @@ RoPE forward pass on NVIDIA GB10 (float16):
 
 </details>
 
-The fused Triton kernel is **4–5× faster than pure PyTorch** and **~2× faster than `torch.compile`**. `torch.compile` reduces overhead but cannot eliminate intermediate tensor allocations from `chunk`/`cat` — the fused kernel reads and writes each element exactly once.
+The fused Triton kernel is **4–7× faster than pure PyTorch** and **~2× faster than `torch.compile`**. `torch.compile` reduces overhead but cannot eliminate intermediate tensor allocations from `chunk`/`cat` — the fused kernel reads and writes each element exactly once.
+
+**Does `view_as_complex` help?** No — on float16 it's roughly the same speed as rotate-half or slightly slower. The float16→float32 cast required by `torch.view_as_complex` eats the savings from avoiding the `cat`. `torch.compile` makes it worse, not better (inductor has no complex op codegen). The Triton kernel beats both approaches by 3.5–9×.
 
 ## Python API
 
