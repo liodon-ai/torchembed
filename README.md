@@ -50,6 +50,8 @@ RoPE forward pass on NVIDIA GB10 (float16):
 
 ![RoPE benchmark — forward pass latency and Triton speedup across sequence lengths 256–32K](assets/benchmark_rope.svg)
 
+![RoPE benchmark bar charts — grouped latency and speedup bars across sequence lengths 256–32K](assets/benchmark_bars.svg)
+
 <details>
 <summary>Full numbers</summary>
 
