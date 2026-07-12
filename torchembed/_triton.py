@@ -10,6 +10,33 @@ except ImportError:
     tl = None
 
 
+def fused_rope_bshd_apply(x, cos, sin):
+    """Apply adjacent-pairs RoPE to a single tensor in (B, S, H, D) layout.
+
+    Uses a stride-aware Triton kernel that reads and writes the tensor exactly
+    once with no intermediate copies, regardless of the input's memory layout.
+
+    This is the right entry-point for frameworks whose attention tensors are
+    seq-major (e.g. torchtune), as opposed to ``fused_rope_forward`` which
+    expects head-major ``(..., seq, dim)`` layout.
+
+    Args:
+        x: Input tensor of shape ``(B, S, H, D)``.
+        cos: Cosine values of shape ``(S, D // 2)``.  May be non-contiguous
+            (e.g. a stride-2 slice from a stacked cache).
+        sin: Sine values of shape ``(S, D // 2)``.  Same constraints as ``cos``.
+
+    Returns:
+        Rotated tensor with the same shape and dtype as ``x``.
+
+    Raises:
+        ImportError: if triton is not installed.
+    """
+    if triton is None:
+        raise ImportError("triton is required. Install it with: pip install triton")
+    return _fused_rope_bshd_impl(x, cos, sin)
+
+
 def fused_rope_forward(q, k, cos, sin):
     """Apply RoPE to Q and K using a fused triton kernel.
 
@@ -133,3 +160,103 @@ if triton is not None:
         q_out = _FusedRoPE.apply(q, cos, sin)
         k_out = _FusedRoPE.apply(k, cos, sin)
         return q_out, k_out
+
+    # ------------------------------------------------------------------ #
+    # BSHD kernel — adjacent-pairs RoPE for (B, S, H, D) layout           #
+    # Used by torchtune and any framework whose tensors are seq-major.     #
+    # ------------------------------------------------------------------ #
+
+    @triton.jit
+    def _fused_rope_bshd_kernel(
+        x_ptr,
+        cos_ptr,
+        sin_ptr,
+        out_ptr,
+        H,
+        stride_xb,
+        stride_xs,
+        stride_xh,
+        stride_xd,
+        stride_cs,
+        stride_cd,
+        stride_ob,
+        stride_os,
+        stride_oh,
+        stride_od,
+        HALF_D: tl.constexpr,
+        BLOCK_SIZE: tl.constexpr,
+    ):
+        """Kernel grid: (B * H, S).
+
+        Implements adjacent-pairs rotation: pairs (x[2i], x[2i+1]) for each i.
+        Handles any (B, S, H, D) memory layout via explicit strides — no copies.
+        """
+        bh_id = tl.program_id(0)
+        s_id = tl.program_id(1)
+
+        b_id = bh_id // H
+        h_id = bh_id % H
+
+        offs = tl.arange(0, BLOCK_SIZE)
+        mask = offs < HALF_D
+
+        x_base = (
+            x_ptr + b_id * stride_xb + s_id * stride_xs + h_id * stride_xh
+        )
+        x_even = tl.load(x_base + offs * 2 * stride_xd, mask=mask)
+        x_odd = tl.load(x_base + (offs * 2 + 1) * stride_xd, mask=mask)
+
+        cs_base = cos_ptr + s_id * stride_cs
+        sn_base = sin_ptr + s_id * stride_cs
+        c = tl.load(cs_base + offs * stride_cd, mask=mask)
+        sn = tl.load(sn_base + offs * stride_cd, mask=mask)
+
+        out_e = x_even * c - x_odd * sn
+        out_o = x_odd * c + x_even * sn
+
+        o_base = (
+            out_ptr + b_id * stride_ob + s_id * stride_os + h_id * stride_oh
+        )
+        tl.store(o_base + offs * 2 * stride_od, out_e, mask=mask)
+        tl.store(o_base + (offs * 2 + 1) * stride_od, out_o, mask=mask)
+
+    class _FusedRoPEBSHD(torch.autograd.Function):
+        @staticmethod
+        def forward(ctx, x, cos, sin):
+            ctx.save_for_backward(cos, sin)
+            return _fused_rope_bshd_core(x, cos, sin)
+
+        @staticmethod
+        def backward(ctx, grad_output):
+            cos, sin = ctx.saved_tensors
+            return _fused_rope_bshd_core(grad_output, cos, -sin), None, None
+
+    def _fused_rope_bshd_core(x, cos, sin):
+        assert x.dim() == 4, f"expected (B, S, H, D), got {x.shape}"
+        B, S, H, D = x.shape
+        out = torch.empty_like(x)
+        half_d = D // 2
+        block_size = triton.next_power_of_2(half_d)
+        _fused_rope_bshd_kernel[(B * H, S)](
+            x,
+            cos,
+            sin,
+            out,
+            H,
+            x.stride(0),
+            x.stride(1),
+            x.stride(2),
+            x.stride(3),
+            cos.stride(0),
+            cos.stride(1),
+            out.stride(0),
+            out.stride(1),
+            out.stride(2),
+            out.stride(3),
+            HALF_D=half_d,
+            BLOCK_SIZE=block_size,
+        )
+        return out
+
+    def _fused_rope_bshd_impl(x, cos, sin):
+        return _FusedRoPEBSHD.apply(x, cos, sin)
